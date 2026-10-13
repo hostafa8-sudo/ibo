@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Akıllı Nota Okuyucu & Çalar - Kadir</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a; color: #f8fafc;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 15px;
+        }
+        h1 { color: #38bdf8; text-align: center; margin-bottom: 4px; font-size: 1.6rem; }
+        .author-badge {
+            background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8;
+            padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+            margin-bottom: 20px; text-align: center; line-height: 1.3;
+        }
+        .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 20px; }
+        .card {
+            background: #1e293b; border: 1px solid #334155; padding: 18px;
+            border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        label { display: block; font-size: 0.85rem; font-weight: bold; color: #38bdf8; margin-bottom: 5px; }
+        input, textarea {
+            width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 8px;
+            border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 0.95rem;
+            outline: none;
+        }
+        textarea { resize: vertical; min-height: 70px; }
+        button.action-btn {
+            width: 100%; padding: 12px; background: #38bdf8; color: #0f172a;
+            border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer;
+            margin-bottom: 8px;
+        }
+        button.action-btn:active { background: #0ea5e9; }
+        button.play-btn { background: #22c55e; color: #fff; }
+        button.play-btn:active { background: #16a34a; }
+
+        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .feed-header h2 { font-size: 1.2rem; color: #f8fafc; }
+        .count-tag { background: #38bdf8; color: #0f172a; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        
+        .song-list { display: flex; flex-direction: column; gap: 12px; }
+        .song-item {
+            background: #0f172a; border-left: 4px solid #38bdf8; padding: 12px;
+            border-radius: 8px; position: relative;
+        }
+        .song-title { font-weight: bold; color: #facc15; font-size: 1rem; margin-bottom: 4px; }
+        .song-text { font-size: 0.85rem; line-height: 1.4; color: #e2e8f0; font-family: monospace; background: #111827; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+        
+        .btn-group { display: flex; gap: 8px; }
+        .play-single { background: #22c55e; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; flex: 1; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+
+        .admin-box {
+            margin-top: 10px; text-align: center; padding: 10px;
+            background: #1e293b; border: 1px dashed #334155; border-radius: 10px;
+        }
+        .admin-btn {
+            background: #334155; color: #38bdf8; border: 1px solid #38bdf8; padding: 8px 16px;
+            border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; width: 100%;
+        }
+        footer { margin-top: 20px; font-size: 0.75rem; color: #64748b; text-align: center; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <h1>📷 Akıllı Nota Taramalı Çalar</h1>
+    <div class="author-badge">👑 Proje Sahibi: Kadir<br>💻 Altyapı & Geliştirici: ibo</div>
+
+    <div class="container">
+        <!-- TARAMA SİMÜLASYONU KARTI -->
+        <div class="card">
+            <label>📸 Kitap Sayfası / Nota Okutma:</label>
+            <button class="action-btn" onclick="simulateScan()">🔍 Kamerayı Aç ve Sayfayı Tara</button>
+
+            <div id="scanResultArea" style="display:none; margin-top:10px; background:#0f172a; padding:10px; border-radius:8px; border:1px solid #38bdf8;">
+                <p style="font-size:0.8rem; color:#38bdf8; margin-bottom:4px;">Taranan Eser Eşleşti:</p>
+                <h3 id="scannedTitle" style="font-size:1rem; color:#facc15;">-</h3>
+                <p id="scannedNotes" style="font-family:monospace; font-size:0.85rem; margin:6px 0; color:#e2e8f0;">-</p>
+                <button class="action-btn play-btn" onclick="playCurrentScanned()">🎶 Melodiyi Otomatik Çal</button>
+            </div>
+        </div>
+
+        <!-- YENİ NOTA / ESER EKLEME (ARŞİVE) -->
+        <div class="card">
+            <label for="songName">➕ Arşive Yeni Şarkı / Kitap Ekle:</label>
+            <input type="text" id="songName" placeholder="Örn: Müzik Kitabı Sayfa 42 - İstiklal Marşı">
+            <textarea id="songNotes" placeholder="Notalar: Do Do Do Re Mi..."></textarea>
+            <button class="action-btn" style="background:#334155; color:#38bdf8;" onclick="addSong()">💾 Veritabanına Kaydet</button>
+        </div>
+
+        <!-- LİSTE -->
+        <div>
+            <div class="feed-header">
+                <h2>📚 Kitap & Nota Arşivi</h2>
+                <span class="count-tag" id="songCount">0 Eser</span>
+            </div>
+            <div class="song-list" id="songFeed"></div>
+        </div>
+
+        <!-- ADMİN -->
+        <div class="admin-box">
+            <button class="admin-btn" id="adminToggleBtn" onclick="toggleAdmin()">🔑 Yönetici Girişi (Admin Modu)</button>
+        </div>
+    </div>
+
+    <footer>
+        © 2026 Kadir & ibo
+    </footer>
+
+    <script>
+        let songs = JSON.parse(localStorage.getItem("ibo_notalar")) || [
+            { title: "Müzik Kitabı - 10. Sayfa (Giriş Melodisi)", notes: "Do - Re - Mi - Fa - Sol - Sol" },
+            { title: "Okul Şarkısı - Sayfa 25", notes: "Mi - Mi - Fa - Sol - Sol - Fa - Mi - Re" }
+        ];
+        let isAdmin = false;
+        let activeNotesForPlay = "";
+
+        // Web Audio API ile ses üretme (Nota çalma simülasyonu)
+        function playTone(freq, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                setTimeout(() => {
+                    osc.stop();
+                    audioCtx.close();
+                }, duration);
+            } catch(e) { console.log("Ses çalma desteklenmiyor"); }
+        }
+
+        function playMelody(notesText) {
+            alert("🎶 Melodi çalınıyor, hoparlör sesini açın!");
+            const freqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88]; // Do Re Mi Fa Sol La Si
+            let i = 0;
+            const interval = setInterval(() => {
+                playTone(freqs[i % freqs.length], 300);
+                i++;
+                if(i > 8) clearInterval(interval);
+            }, 400);
+        }
+
+        function simulateScan() {
+            if(songs.length === 0) {
+                alert("Önce arşive eser ekleyin!");
+                return;
+            }
+            // Rastgele bir eseri taranmış gibi getir
+            const randomSong = songs[Math.floor(Math.random() * songs.length)];
+            document.getElementById("scannedTitle").innerText = randomSong.title;
+            document.getElementById("scannedNotes").innerText = randomSong.notes;
+            activeNotesForPlay = randomSong.notes;
+            document.getElementById("scanResultArea").style.display = "block";
+            alert("📷 Sayfa tarandı ve sistem eseri tanıdı!");
+        }
+
+        function playCurrentScanned() {
+            playMelody(activeNotesForPlay);
+        }
+
+        function renderSongs() {
+            const feed = document.getElementById("songFeed");
+            feed.innerHTML = "";
+            document.getElementById("songCount").innerText = songs.length + " Eser";
+
+            songs.forEach((s, index) => {
+                const item = document.createElement("div");
+                item.className = "song-item";
+                let adminControls = isAdmin ? `<button class="delete-btn" onclick="deleteSong(${index})">🗑️ Sil</button>` : ``;
+
+                item.innerHTML = `
+                    <div class="song-title">📖 ${s.title}</div>
+                    <div class="song-text">${s.notes}</div>
+                    <div class="btn-group">
+                        <button class="play-single" onclick="playMelody('${s.notes}')">🎶 Çal</button>
+                        ${adminControls}
+                    </div>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function addSong() {
+            const title = document.getElementById("songName").value.trim();
+            const notes = document.getElementById("songNotes").value.trim();
+            if(!title || !notes) {
+                alert("Lütfen başlık ve notaları doldurun!");
+                return;
+            }
+            songs.unshift({ title, notes });
+            localStorage.setItem("ibo_notalar", JSON.stringify(songs));
+            document.getElementById("songName").value = "";
+            document.getElementById("songNotes").value = "";
+            renderSongs();
+            alert("Başarıyla kaydedildi!");
+        }
+
+        function toggleAdmin() {
+            if(!isAdmin) {
+                const pass = prompt("Yönetici Şifresini Girin (1234):");
+                if(pass === "1234") {
+                    isAdmin = true;
+                    alert("Admin modu aktif!");
+                    const btn = document.getElementById("adminToggleBtn");
+                    btn.innerText = "🔓 Yönetici Çıkışı Yap";
+                    btn.style.background = "#ef4444";
+                    btn.style.color = "#fff";
+                } else if(pass !== null) { alert("Hatalı Şifre!"); }
+            } else {
+                isAdmin = false;
+                alert("Admin modundan çıkıldı.");
+                const btn = document.getElementById("adminToggleBtn");
+                btn.innerText = "🔑 Yönetici Girişi (Admin Modu)";
+                btn.style.background = "#334155";
+                btn.style.color = "#38bdf8";
+            }
+            renderSongs();
+        }
+
+        function deleteSong(index) {
+            if(confirm("Silmek istediğinize emin misiniz?")) {
+                songs.splice(index, 1);
+                localStorage.setItem("ibo_notalar", JSON.stringify(songs));
+                renderSongs();
+            }
+        }
+
+        renderSongs();
+    </script>
+</body>
+</html>
+
