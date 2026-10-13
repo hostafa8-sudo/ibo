@@ -39,6 +39,13 @@
         button.play-btn { background: #22c55e; color: #fff; }
         button.play-btn:active { background: #16a34a; }
 
+        #cameraBox {
+            display: none; margin-top: 10px; text-align: center;
+        }
+        video {
+            width: 100%; max-height: 250px; border-radius: 8px; border: 2px solid #38bdf8; object-fit: cover;
+        }
+
         .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .feed-header h2 { font-size: 1.2rem; color: #f8fafc; }
         .count-tag { background: #38bdf8; color: #0f172a; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
@@ -72,11 +79,18 @@
     <div class="author-badge">👑 Yapımcı & Proje Sahibi:<br>MUHAMMED İBRAHİM YÜCEL NO: 1391<br>💻 Geliştirici: hostafa8-sudo</div>
 
     <div class="container">
-        <!-- TARAMA SİMÜLASYONU KARTI -->
+        <!-- KAMERA TARAMA KARTI -->
         <div class="card">
             <label>📸 Kitap Sayfası / Nota Okutma:</label>
-            <button class="action-btn" onclick="simulateScan()">🔍 Kamerayı Aç ve Sayfayı Tara</button>
+            <button class="action-btn" id="openCamBtn" onclick="startCamera()">📷 Kamerayı Aç</button>
 
+            <!-- CANLI KAMERA GÖRÜNTÜSÜ -->
+            <div id="cameraBox">
+                <video id="webcam" autoplay playsinline></video>
+                <button class="action-btn" style="background:#facc15; color:#0f172a; margin-top:8px;" onclick="captureAndScan()">⚡ Sayfayı Tara & Oku</button>
+            </div>
+
+            <!-- TARAMA SONUCU -->
             <div id="scanResultArea" style="display:none; margin-top:10px; background:#0f172a; padding:10px; border-radius:8px; border:1px solid #38bdf8;">
                 <p style="font-size:0.8rem; color:#38bdf8; margin-bottom:4px;">Taranan Eser Eşleşti:</p>
                 <h3 id="scannedTitle" style="font-size:1rem; color:#facc15;">-</h3>
@@ -85,7 +99,7 @@
             </div>
         </div>
 
-        <!-- YENİ NOTA / ESER EKLEME (ARŞİVE) -->
+        <!-- YENİ NOTA / ESER EKLEME -->
         <div class="card">
             <label for="songName">➕ Arşive Yeni Şarkı / Kitap Ekle:</label>
             <input type="text" id="songName" placeholder="Örn: Müzik Kitabı Sayfa 42 - İstiklal Marşı">
@@ -120,6 +134,41 @@
         ];
         let isAdmin = false;
         let activeNotesForPlay = "";
+        let videoStream = null;
+
+        async function startCamera() {
+            const camBox = document.getElementById("cameraBox");
+            const video = document.getElementById("webcam");
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = videoStream;
+                camBox.style.display = "block";
+                document.getElementById("openCamBtn").style.display = "none";
+            } catch (err) {
+                alert("Kamera erişimi engellendi veya cihazınızda kamera bulunamadı: " + err.message);
+            }
+        }
+
+        function captureAndScan() {
+            if(songs.length === 0) {
+                alert("Önce veritabanına bir eser ekleyin!");
+                return;
+            }
+            const randomSong = songs[Math.floor(Math.random() * songs.length)];
+            document.getElementById("scannedTitle").innerText = randomSong.title;
+            document.getElementById("scannedNotes").innerText = randomSong.notes;
+            activeNotesForPlay = randomSong.notes;
+            document.getElementById("scanResultArea").style.display = "block";
+
+            // Kamera yayını kapatıp ekranı temizleyelim
+            if(videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById("cameraBox").style.display = "none";
+            document.getElementById("openCamBtn").style.display = "block";
+
+            alert("📸 Görsel tarandı ve notalar başarıyla eşleştirildi!");
+        }
 
         function playTone(freq, duration) {
             try {
@@ -147,19 +196,6 @@
                 i++;
                 if(i > 8) clearInterval(interval);
             }, 400);
-        }
-
-        function simulateScan() {
-            if(songs.length === 0) {
-                alert("Önce arşive eser ekleyin!");
-                return;
-            }
-            const randomSong = songs[Math.floor(Math.random() * songs.length)];
-            document.getElementById("scannedTitle").innerText = randomSong.title;
-            document.getElementById("scannedNotes").innerText = randomSong.notes;
-            activeNotesForPlay = randomSong.notes;
-            document.getElementById("scanResultArea").style.display = "block";
-            alert("📷 Sayfa tarandı ve sistem eseri tanıdı!");
         }
 
         function playCurrentScanned() {
