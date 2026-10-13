@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Akıllı Nota Okuyucu & Çalar - Kadir</title>
+    <title>Akıllı Nota Okuyucu & Çalar - Kadir & İbrahim</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -69,7 +69,7 @@
 <body>
 
     <h1>📷 Akıllı Nota Taramalı Çalar</h1>
-    <div class="author-badge">👑 Proje Sahibi: Kadir<br>💻 Altyapı & Geliştirici: ibo</div>
+    <div class="author-badge">👑 Yapımcı: MUHAMMED İBRAHİM YÜCEL NO: 1391<br>🤝 Proje Sahibi: Kadir<br>💻 Geliştirici: hostafa8-sudo</div>
 
     <div class="container">
         <!-- TARAMA SİMÜLASYONU KARTI -->
@@ -109,7 +109,8 @@
     </div>
 
     <footer>
-        © 2026 Kadir & ibo
+        © 2026 MUHAMMED İBRAHİM YÜCEL NO: 1391 & Kadir<br>
+        Altyapı & Geliştirici: hostafa8-sudo
     </footer>
 
     <script>
@@ -120,7 +121,6 @@
         let isAdmin = false;
         let activeNotesForPlay = "";
 
-        // Web Audio API ile ses üretme (Nota çalma simülasyonu)
         function playTone(freq, duration) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -140,7 +140,7 @@
 
         function playMelody(notesText) {
             alert("🎶 Melodi çalınıyor, hoparlör sesini açın!");
-            const freqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88]; // Do Re Mi Fa Sol La Si
+            const freqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88];
             let i = 0;
             const interval = setInterval(() => {
                 playTone(freqs[i % freqs.length], 300);
@@ -154,7 +154,6 @@
                 alert("Önce arşive eser ekleyin!");
                 return;
             }
-            // Rastgele bir eseri taranmış gibi getir
             const randomSong = songs[Math.floor(Math.random() * songs.length)];
             document.getElementById("scannedTitle").innerText = randomSong.title;
             document.getElementById("scannedNotes").innerText = randomSong.notes;
